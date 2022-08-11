@@ -82,6 +82,7 @@ public class Main {
 
 				if (foundArticle == null) {
 					System.out.printf("%d번 게시글은 존재하지 않습니다\n", articleNum);
+					continue;
 
 				}
 
