@@ -6,16 +6,18 @@ import java.util.Scanner;
 
 public class Main {
 	private static List<Article> articles;
+	private static List<Member> members;
 
 	static {
 		articles = new ArrayList<>();
+		members = new ArrayList<>();
 	}
 
 	public static void main(String[] args) {
 		System.out.println("==프로그램 시작==");
 		makeTestData();
 		Scanner sc = new Scanner(System.in);
-		
+
 		while (true) {
 			System.out.printf("명령어) ");
 			String cmd = sc.nextLine();
@@ -125,6 +127,25 @@ public class Main {
 				continue;
 			}
 
+			else if (cmd.equals("member join")) {
+				int id = articles.size() + 1;
+				String regDate = Util.getDateStr();
+
+				System.out.println("이름을 입력해주세요");
+				String name = sc.nextLine();
+				System.out.println("아이디를 입력해주세요");
+				String loginId = sc.nextLine();
+				System.out.println("비밀번호를 입력해주세요");
+				String loginPw = sc.nextLine();
+
+				Member member = new Member(id, regDate, name, loginId, loginPw);
+				members.add(member);
+
+				System.out.printf("%s 회원님의 회원가입이 완료되었습니다.\n", name);
+				continue;
+
+			}
+
 			else {
 				System.out.println("존재하지 않는 명령어입니다");
 				continue;
@@ -158,7 +179,7 @@ public class Main {
 		if (index != -1) {
 			return articles.get(index);
 		}
-		
+
 		return null;
 	}
 
@@ -195,6 +216,24 @@ class Article {
 
 	public void increaseHit() {
 		hit++;
+	}
+
+}
+
+class Member {
+	int id;
+	String regDate;
+	String loginId;
+	String loginPw;
+	String name;
+
+	Member(int id, String regDate, String name, String loginId, String loginPw) {
+		this.id = id;
+		this.regDate = regDate;
+		this.name = name;
+		this.loginId = loginId;
+		this.loginPw = loginPw;
+
 	}
 
 }
