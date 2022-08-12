@@ -1,22 +1,21 @@
 package com.KoreaIT.java.AM;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Date;
 
 public class Main {
+	private static List<Article> articles;
+
+	static {
+		articles = new ArrayList<>();
+	}
 
 	public static void main(String[] args) {
 		System.out.println("==프로그램 시작==");
+		makeTestData();
 		Scanner sc = new Scanner(System.in);
-		List<Article> articles = new ArrayList<>();
-		Date date = new Date();
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-		int lastArticleId = 0;
-
+		
 		while (true) {
 			System.out.printf("명령어) ");
 			String cmd = sc.nextLine();
@@ -25,7 +24,7 @@ public class Main {
 				break;
 			}
 
-			if (cmd.equals("article list")) {
+			if (cmd.equals("article list") || cmd.equals("l")) {
 
 				if (articles.size() == 0) {
 
@@ -35,12 +34,12 @@ public class Main {
 
 				else {
 
-					System.out.println("번호/제목");
+					System.out.println("번호/제목/조회수");
 
 					for (int i = articles.size() - 1; i >= 0; i--) {
 
 						Article article = articles.get(i);
-						System.out.printf("%d / %s\n", article.id, article.title);
+						System.out.printf("%d / %s / %d\n", article.id, article.title, article.hit);
 
 					}
 					continue;
@@ -49,7 +48,7 @@ public class Main {
 
 			} else if (cmd.equals("article write") || cmd.equals("t")) {
 
-				int id = lastArticleId + 1;
+				int id = articles.size() + 1;
 
 				System.out.printf("제목: ");
 				String title = sc.nextLine();
@@ -57,8 +56,7 @@ public class Main {
 
 				String content = sc.nextLine();
 
-				String time = formatter.format(date);
-				lastArticleId++;
+				String time = Util.getDateStr();
 				Article article = new Article(id, title, content, time);
 				articles.add(article);
 				System.out.printf("%d번 글이 생성되었습니다.\n", id);
@@ -68,81 +66,53 @@ public class Main {
 
 			else if (cmd.startsWith("article detail ")) {
 				String[] numEx = cmd.split("article detail ");
-				int articleNum = Integer.parseInt(numEx[1]);
-				Article foundArticle = null;
+				int id = Integer.parseInt(numEx[1]);
 
-				for (int i = 0; i < articles.size(); i++) {
-					Article article = articles.get(i);
-
-					if (article.id == articleNum) {
-						foundArticle = article;
-						break;
-					}
-				}
+				Article foundArticle = getArticleById(id);
 
 				if (foundArticle == null) {
-					System.out.printf("%d번 게시글은 존재하지 않습니다\n", articleNum);
+					System.out.printf("%d번 게시글은 존재하지 않습니다\n", id);
 					continue;
 
 				}
 
 				else {
-
-					System.out.printf("날짜 : %s\n번호 : %d\n제목 : %s\n내용 : %s\n", foundArticle.time, foundArticle.id,
-							foundArticle.title, foundArticle.content);
+					foundArticle.increaseHit();
+					System.out.printf("날짜 : %s\n번호 : %d\n제목 : %s\n내용 : %s\n조회수 : %d\n", foundArticle.time,
+							foundArticle.id, foundArticle.title, foundArticle.content, foundArticle.hit);
 					continue;
+
 				}
 
 			}
 
 			else if (cmd.startsWith("article delete ")) {
 				String[] numEx = cmd.split("article delete ");
-				int articleNum = Integer.parseInt(numEx[1]);
-				
-				int foundindex = -1;
-				
-				for(int i=0; i < articles.size(); i++) {
-					Article article = articles.get(i);
-					
-					if (article.id == articleNum) {
-						foundindex = i;
-						break;
-					}
-					
-				}
-				
-				if(foundindex == -1) {
-					System.out.printf("%d번 게시글은 존재하지 않습니다\n" , articleNum);
+				int id = Integer.parseInt(numEx[1]);
+
+				int foundindex = getArticleByIndex(id);
+
+				if (foundindex == -1) {
+					System.out.printf("%d번 게시글은 존재하지 않습니다\n", id);
 					continue;
 				}
-				
+
 				articles.remove(foundindex);
-				System.out.printf("%d번 글을 삭제했습니다.\n", articleNum);
+				System.out.printf("%d번 글을 삭제했습니다.\n", id);
 				continue;
 			}
-			
 
 			else if (cmd.startsWith("article modify ")) {
 				String[] numEx = cmd.split("article modify ");
-				int articleNum = Integer.parseInt(numEx[1]);
-				
-				Article foundArticle = null;
-				
-				for(int i=0; i < articles.size(); i++) {
-					Article article = articles.get(i);
-					
-					if (article.id == articleNum) {
-						foundArticle = article;
-						break;
-					}
-					
-				}
-				
-				if(foundArticle == null) {
-					System.out.printf("%d번 게시물은 존재하지 않습니다\n" , articleNum);
+				int id = Integer.parseInt(numEx[1]);
+
+				Article foundArticle = getArticleById(id);
+
+				if (foundArticle == null) {
+					System.out.printf("%d번 게시물은 존재하지 않습니다\n", id);
 					continue;
 				}
-				
+
 				System.out.printf("새 제목 : ");
 				String title = sc.nextLine();
 				System.out.printf("새 내용 : ");
@@ -151,7 +121,7 @@ public class Main {
 				foundArticle.title = title;
 				foundArticle.content = content;
 
-				System.out.printf("%d번 글을 수정했습니다.\n", articleNum);
+				System.out.printf("%d번 글을 수정했습니다.\n", id);
 				continue;
 			}
 
@@ -161,13 +131,44 @@ public class Main {
 
 			}
 
-			sc.close();
-
 		}
 
+		sc.close();
 		System.out.println("==프로그램 종료==");
 
 	}
+
+	private static int getArticleByIndex(int id) {
+		int a = 0;
+		for (int i1 = 0; i1 < articles.size(); i1++) {
+			Article article = articles.get(i1);
+
+			if (article.id == id) {
+				return a;
+			}
+			a++;
+
+		}
+		return -1;
+	}
+
+	private static Article getArticleById(int id) {
+		int index = getArticleByIndex(id);
+
+		if (index != -1) {
+			return articles.get(index);
+		}
+		
+		return null;
+	}
+
+	private static void makeTestData() {
+		System.out.println("테스트 데이터를 생성했습니다");
+		articles.add(new Article(1, "제목1", "내용1", Util.getDateStr(), 10));
+		articles.add(new Article(2, "제목2", "내용2", Util.getDateStr(), 20));
+		articles.add(new Article(3, "제목3", "내용3", Util.getDateStr(), 30));
+	}
+
 }
 
 class Article {
@@ -175,14 +176,25 @@ class Article {
 	String title;
 	String content;
 	String time;
+	int hit;
 
 	Article(int id, String title, String content, String time) {
+		this(id, title, content, time, 0);
+
+	}
+
+	Article(int id, String title, String content, String time, int hit) {
 
 		this.id = id;
 		this.title = title;
 		this.content = content;
 		this.time = time;
+		this.hit = hit;
 
+	}
+
+	public void increaseHit() {
+		hit++;
 	}
 
 }
